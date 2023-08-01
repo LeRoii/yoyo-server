@@ -211,8 +211,10 @@ void Json2TsFusInput(const char* str, StTsFusInput& TsFusInput)
 
         dataElement.MapMarker.detailInfo.camp = detailInfoDom["camp"].GetString();
         dataElement.MapMarker.detailInfo.targetName = detailInfoDom["targetName"].GetString();
-        dataElement.MapMarker.detailInfo.latitude = detailInfoDom["latitude"].GetDouble();
-        dataElement.MapMarker.detailInfo.longitude = detailInfoDom["longitude"].GetDouble();
+        // dataElement.MapMarker.detailInfo.latitude = detailInfoDom["latitude"].GetDouble();
+        // dataElement.MapMarker.detailInfo.longitude = detailInfoDom["longitude"].GetDouble();
+        dataElement.MapMarker.detailInfo.latitude = std::stod(detailInfoDom["latitude"].GetString());
+        dataElement.MapMarker.detailInfo.longitude = std::stod(detailInfoDom["longitude"].GetString());
         dataElement.MapMarker.detailInfo.targetCount = detailInfoDom["targetCount"].GetInt();
         dataElement.MapMarker.detailInfo.targetDirection = detailInfoDom["targetDirection"].GetString();
         dataElement.MapMarker.detailInfo.targetSpeed = detailInfoDom["targetSpeed"].GetDouble();

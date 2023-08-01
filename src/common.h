@@ -44,8 +44,8 @@ struct StMarkerDetailInfo
 {
     std::string camp;
     std::string targetName;
-    double latitude;
-    double longitude;
+    double latitude;//string
+    double longitude;//string
     int targetCount;
     std::string targetDirection;
     double targetSpeed;
@@ -71,7 +71,7 @@ struct StMapMarkerInfo
     uint64_t updateMarkerTime;
     std::string publisherUserId;
     std::string elevation; //int
-    std::string intent;
+    std::string intent;//no
     std::string grade;
 
     std::vector<std::pair<double, double>> pos;
