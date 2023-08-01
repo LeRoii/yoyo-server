@@ -169,7 +169,7 @@ void Json2TsFusInput(const char* str, StTsFusInput& TsFusInput)
     }
 
     TsFusInput.sType = dom["type"].GetString();
-    TsFusInput.sUserid = dom["userid"].GetString();
+    TsFusInput.sUserid = dom["userId"].GetString();
     TsFusInput.data.clear();
 
     for(auto &fuInputData:dom["data"].GetArray())
@@ -549,7 +549,7 @@ void ThreatResult2Js(StThreatResultOutput& result, std::string& str)
         dataElementValue.AddMember("id", rapidjson::StringRef(dataElement.id.c_str()), allocator);
         dataElementValue.AddMember("targetName", rapidjson::StringRef(dataElement.targetName.c_str()), allocator);
         dataElementValue.AddMember("grade", rapidjson::StringRef(dataElement.grade.c_str()), allocator);
-
+        dataElementValue.AddMember("score", rapidjson::StringRef(dataElement.score.c_str()), allocator);
         dataValue.PushBack(dataElementValue, allocator);
     }
 

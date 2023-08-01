@@ -118,6 +118,156 @@ void AnalysisAlgo(std::vector<StMapMarkerInfo>& markers, std::vector<StTsAnaResu
 
 }
 
+
+void ThreatAlgo(std::vector<StMapMarkerInfo> &markers, StThreatResultOutput &result)
+{
+    double form_group_thread = 100.0;
+    float iter_step = 0.1;
+    float predict_step = 5;
+    std::vector<StMapMarkerInfo> enemy_markers;
+    result.i32Type = 3;
+    result.api = "mapPlugin/ai";
+    StThreatResultData ThreatResult_data;
+    for (int i = 0; i < markers.size(); i++)
+    {
+        if (markers[i].detailInfo.camp == "我方" || markers[i].detailInfo.camp == "友方")
+        {
+            continue;
+        }
+        enemy_markers.push_back(markers[i]);
+        ThreatResult_data.id = markers[i].timestampAndUserId;
+        ThreatResult_data.targetName = markers[i].detailInfo.targetName;
+        result.data.push_back(ThreatResult_data);
+    }
+    std::cout<<result.data.size()<<"result.data."<<std::endl;
+    if(result.data.size()==0){
+        return;
+    }
+
+    Eigen::MatrixXf enemy_marker_info = Eigen::MatrixXf(enemy_markers.size(), 2);
+    Eigen::Vector2f enemy_pos1;
+    enemy_pos1 << 0, 0;
+    StTsAnaResultData temp_data;
+
+    for (int i = 0; i < enemy_markers.size(); i++)
+    {
+        enemy_marker_info(i, 0) = enemy_markers[i].latitude;
+        enemy_marker_info(i, 1) = enemy_markers[i].longitude;
+        temp_data.latitude = enemy_markers[i].latitude;
+        temp_data.longitude = enemy_markers[i].longitude;
+        // result.push_back(temp_data);
+    }
+    for (int i = 0; i < enemy_markers.size(); i++)
+    {
+        enemy_pos1(0) = enemy_marker_info(i, 0);
+        enemy_pos1(1) = enemy_marker_info(i, 1);
+        Eigen::VectorXf result_vector = math_tool.get_min_info(enemy_pos1, enemy_marker_info);
+        if (result_vector(1) < form_group_thread)
+        {
+            StMapMarkerInfo group;
+            group.latitude = enemy_marker_info(result_vector(0), 0);
+            group.longitude = enemy_marker_info(result_vector(0), 1);
+            // result[i].force.push_back(group);
+        }
+    }
+
+    Eigen::MatrixXd Q(4, 4);
+    Q << 0.1, 0, 0, 0,
+        0, 0.1, 0, 0,
+        0, 0, 0.1, 0,
+        0, 0, 0, 0.1;
+    Eigen::MatrixXd R(2, 2);
+    R << 0.1, 0,
+        0, 0.1;
+    Eigen::VectorXd x_init = Eigen::VectorXd::Zero(4);
+    Eigen::VectorXd u = Eigen::VectorXd::Zero(2);
+    Eigen::VectorXd x_predict, x_update;
+    Eigen::VectorXd z_k(2);
+    std::vector<int> enemy_intention;
+    for (int i = 0; i < enemy_markers.size(); i++)
+    {
+
+        auto kf = std::make_shared<proj_kalman::kf_kalman>(4, 2, 0, Q, R);
+        x_init << enemy_marker_info(i, 0), enemy_marker_info(i, 1), 0, 0;
+        kf->init(x_init);
+        StMapMarkerInfo predict_point;
+        for (int j = 0; j < enemy_markers[i].pos.size() + predict_step; j++)
+        {
+            x_predict = kf->predict(u, iter_step);
+            if (j >= enemy_markers[i].pos.size())
+            {
+                z_k << x_predict(0), x_predict(1);
+                x_update = kf->update(z_k);
+                predict_point.latitude = x_update(0);
+                predict_point.longitude = x_update(1);
+                // result[i].line[0].pos.push_back(std::make_pair(x_update(0), x_update(1)));
+                // result[i].line.push_back(predict_point);
+            }
+            else
+            {
+                z_k << enemy_marker_info(i, 0), enemy_marker_info(i, 1);
+                x_update = kf->update(z_k);
+            }
+        }
+
+        StMapMarkerInfo intention_point;
+        auto intention = std::make_shared<proj_intention::EnemyIntention>(iter_step, enemy_markers[i].pos.size());
+        std::vector<float> enemy_posx, enemy_posy;
+        Eigen::Vector2f target(2);
+        target << 0, 0;
+        for (int j = 0; j < enemy_markers[i].pos.size(); j++)
+        {
+            enemy_posx.push_back(enemy_markers[i].pos[j].first);
+            enemy_posy.push_back(enemy_markers[i].pos[j].second);
+        }
+        int single_inten = intention->single_intention(enemy_posx, enemy_posy, target);
+        intention_point.intent = intention_map.at(single_inten);
+        // result[i].intent.push_back(intention_point);
+        enemy_intention.push_back(single_inten);
+        std::cout << "single enemy_intention:" << intention_point.intent << std::endl;
+    }
+
+    auto threat = std::make_shared<proj_threat::TopsisThreat>();
+    Eigen::MatrixXf enemy_pos = Eigen::MatrixXf::Zero(enemy_markers.size(), 2);
+    std::vector<int> enemy_info;
+    std::vector<float> enemy_vel;
+    for (int i = 0; i < enemy_markers.size(); i++)
+    {
+        enemy_info.push_back(enemyid_map.at(enemy_markers[i].detailInfo.targetType));
+        enemy_pos(i, 0) = enemy_markers[i].latitude;
+        enemy_pos(i, 1) = enemy_markers[i].longitude;
+        double vel = sqrt(pow((enemy_markers[i].pos[-1].first - enemy_markers[i].pos[-2].first) / iter_step, 2) +
+                          pow((enemy_markers[i].pos[-1].second - enemy_markers[i].pos[-2].second) / iter_step, 2));
+        enemy_vel.push_back(vel);
+    }
+    Eigen::Vector2f target(2);
+    target << 0, 0;
+    Eigen::VectorXf enemy_threat = Eigen::VectorXf::Zero(2);
+    std::cout<<enemy_info.size()<<" enemy"<<std::endl;
+    enemy_threat = threat->danger_evaluate(enemy_info, enemy_pos, enemy_vel, enemy_intention, target);
+    for (int i = 0; i < result.data.size(); i++)
+    {
+        std::cout<<"enemy_threat"<<enemy_threat[i]<<std::endl;
+        if (enemy_threat[i] < 0.3)
+        {
+            result.data[i].grade = "三级";
+            result.data[i].score = "30";
+        }
+        else if (enemy_threat[i] < 0.5)
+        {
+            result.data[i].grade = "二级";
+            result.data[i].score = "50";
+        }
+        else
+        {
+            result.data[i].grade = "一级";
+            result.data[i].score = "100";
+        }
+    }
+
+    std::cout << "enemy_threat:" << enemy_threat << std::endl;
+}
+
 static int Is_In_List(StMapMarkerInfo &target)
 {
     if(m_markers.empty())
@@ -230,18 +380,32 @@ void Ts_Anals(StTsAnaInput& input, StTsAnaResultOutput& output)
     }
 }
 
-void Threat_Anals(StThreatResultOutput& output)
+// void Threat_Anals(StThreatResultOutput& output)
+// {
+//     output.i32Type = 3;
+//     output.api = "mapPlugin/ai";
+
+//     for(int i=0;i<m_markers.size();i++)
+//     {
+//         StThreatResultData DataElement;
+//         DataElement.id = m_markers[i].timestampAndUserId;
+//         DataElement.targetName = m_markers[i].detailInfo.targetName;
+//         DataElement.grade = m_markers[i].grade;
+
+//         output.data.push_back(DataElement);
+//     }
+// }
+
+void Threat_Anals(StThreatResultOutput &output)
 {
-    output.i32Type = 3;
-    output.api = "mapPlugin/ai";
-
-    for(int i=0;i<m_markers.size();i++)
+    std::cout<<"m_markers.size"<<m_markers.size()<<std::endl;
+    ThreatAlgo(m_markers, output);
+    for (int i = 0; i < output.data.size(); i++)
     {
-        StThreatResultData DataElement;
-        DataElement.id = m_markers[i].timestampAndUserId;
-        DataElement.targetName = m_markers[i].detailInfo.targetName;
-        DataElement.grade = m_markers[i].grade;
-
-        output.data.push_back(DataElement);
+        printf("output.data.id:%s\n", output.data[i].id.c_str());
+        printf("output.data.targetName:%s\n", output.data[i].targetName.c_str());
+        printf("output.data.grade:%s\n", output.data[i].grade.c_str());
+        printf("output.data.score:%s\n", output.data[i].score.c_str());
     }
+
 }

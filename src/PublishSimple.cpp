@@ -261,6 +261,36 @@ std::string readFileToString(const std::string& filename) {
 }
 
 
+void delayedExecution(int delayInSeconds)
+{
+  // 将延迟转换为毫秒
+  int delayInMilliseconds = delayInSeconds * 1000;
+
+  // 睡眠指定的延迟时间
+  while (1)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(delayInMilliseconds));
+    StThreatResultOutput tsthreadoutput;
+    std::string retstr;
+    Threat_Anals(tsthreadoutput);
+    ThreatResult2Js(tsthreadoutput, retstr);
+
+    do
+    {
+      ret = sw->sender->publish(retstr.c_str(), retstr.length() + 1, session, &seq);
+      if (HL_TRY_AGAIN_LATER == ret)
+      {
+        usleep(5);
+        fprintf(stderr, "too fast sleep  ... ...\n");
+      }
+    } while (HL_TRY_AGAIN_LATER == ret);
+
+    // 在延迟后执行某条语句
+    std::cout << "Delayed execution after " << delayInSeconds << " seconds" << std::endl;
+  }
+}
+
+
 int main(int argc, const char **argv)
 {
   printf("main start!!!!!!!!!!!!!!\n");
@@ -304,17 +334,17 @@ int main(int argc, const char **argv)
 
   // 指定HLMessaging的配置文件路径
   // std::string messagingConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-messaging-for-sender.xml";
-  std::string messagingConfigFile = "/app/prog/930/c++simple/pubsub/config/aiservice/bitsflow_hl_messaging_for_sender.xml";
+  std::string messagingConfigFile = "/app/prog/yoyo-server/config/aiservice/bitsflow_hl_messaging_for_sender.xml";
   
   // 指定HLSender的配置文件路径
   // std::string SenderConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-sender.xml";
-  std::string SenderConfigFile = "/app/prog/930/c++simple/pubsub/config/aiservice/bitsflow_hl_sender.xml";
+  std::string SenderConfigFile = "/app/prog/yoyo-server/config/aiservice/bitsflow_hl_sender.xml";
 
 
-  std::string ListenderMessagingConfigFile = "/app/prog/930/c++simple/pubsub/config/aiservice/bitsflow_hl_messaging_for_listener.xml";
+  std::string ListenderMessagingConfigFile = "/app/prog/yoyo-server/config/aiservice/bitsflow_hl_messaging_for_listener.xml";
   // 指定HLListener的配置文件路径
   // std::string listenerConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-listener-none-XTESTSession.xml";
-  std::string listenerConfigFile = "/app/prog/930/c++simple/pubsub/config/aiservice/bitsflow_hl_listener.xml";
+  std::string listenerConfigFile = "/app/prog/yoyo-server/config/aiservice/bitsflow_hl_listener.xml";
 
 
 
@@ -368,6 +398,7 @@ int main(int argc, const char **argv)
   } while (0);
 
   usleep(1 * 1000 * 1000);
+  std::thread t(delayedExecution, 10); // 300 秒 = 5 分钟
   // for (int i = 0; i < 1; i++) {
 
     do
@@ -383,6 +414,7 @@ int main(int argc, const char **argv)
   // }
 
   getchar();
+  t.join();
 
   if (sw) {
     

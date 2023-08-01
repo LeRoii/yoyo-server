@@ -181,6 +181,7 @@ struct StThreatResultData
     std::string id;
     std::string targetName;
     std::string grade;
+    std::string score;
 };
 
 struct StThreatResultOutput

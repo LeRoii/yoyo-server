@@ -202,17 +202,17 @@ int main(int argc, const char **argv)
 
   // 指定HLMessaging的配置文件路径
   // std::string messagingConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-messaging-for-sender.xml";
-  std::string messagingConfigFile = "/app/prog/930/c++simple/pubsub/config/client/bitsflow_hl_messaging_for_sender.xml";
+  std::string messagingConfigFile = "/app/prog/yoyo-server/config/client/bitsflow_hl_messaging_for_sender.xml";
   
   // 指定HLSender的配置文件路径
   // std::string SenderConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-sender.xml";
-  std::string SenderConfigFile = "/app/prog/930/c++simple/pubsub/config/client/bitsflow_hl_sender.xml";
+  std::string SenderConfigFile = "/app/prog/yoyo-server/config/client/bitsflow_hl_sender.xml";
 
 
-  std::string ListenderMessagingConfigFile = "/app/prog/930/c++simple/pubsub/config/client/bitsflow_hl_messaging_for_listener.xml";
+  std::string ListenderMessagingConfigFile = "/app/prog/yoyo-server/config/client/bitsflow_hl_messaging_for_listener.xml";
   // 指定HLListener的配置文件路径
   // std::string listenerConfigFile = "/home/xdl/sample/c++case/case/PublishReveiceDataNoneCluster/bitsflow-hl-listener-none-XTESTSession.xml";
-  std::string listenerConfigFile = "/app/prog/930/c++simple/pubsub/config/client/bitsflow_hl_listener.xml";
+  std::string listenerConfigFile = "/app/prog/yoyo-server/config/client/bitsflow_hl_listener.xml";
 
 
 
