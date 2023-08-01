@@ -1,0 +1,48 @@
+<Configuration>
+ 
+    <HLMessaging>
+ 
+        <Client-Id>
+ 
+            <!-- The domain id for the bitsflow hight level api messaging -->
+            <Domain-Id>BeiJing</Domain-Id>
+ 
+            <!-- The application id for the bitsflow hight level api messaging -->
+            <App-Id>AISERVICE</App-Id>
+ 
+            <!-- The user id for the bitsflow hight level api messaging -->
+            <User-Id>xj-AISERVICE</User-Id>
+        </Client-Id>
+ 
+        <Bitsflow>
+ 
+            <!-- It's used to connect to bitsflow agent to communicate between senders and listeners -->
+            <Default-Agent>localhost:1234</Default-Agent>
+ 
+            <!-- It's used to connect to bitsflow agent to communicate between senders and listeners -->
+            <Default-Service>5678</Default-Service>
+ 
+            <!-- whether enable data discorderly startup, default as true -->
+            <Enable-Disorderly-Startup>true</Enable-Disorderly-Startup>
+ 
+            <!-- It's inital connect timeout, -1 means never timeout, unit is second, default as -1. forced to be -1 if 'Disorderly-Startup-Enabled' is true -->
+            <Connect-Timeout>-1</Connect-Timeout>
+ 
+            <!-- Channel Flags can hold a list of 'Channel Flag', forced to be a list if 'AUTOHEAL', 'RELAX' and 'CONCURRENT' if 'Disorderly-Startup-Enabled' is true-->
+            <!--
+              AUTOHEAL    : channel has auto heal flag
+              RELAX       : channel has relax start flag
+              CONCURRENT  : channel has start concurrent flag
+            -->
+            <Channel-Flags>
+                <Channel-Flag>AUTOHEAL</Channel-Flag>
+                <Channel-Flag>RELAX</Channel-Flag>
+                <Channel-Flag>CONCURRENT</Channel-Flag>
+            </Channel-Flags>
+ 
+            <!-- max count of channels used for senders and listeners created by this messaging -->
+            <Channels-Max-Num>1</Channels-Max-Num>
+        </Bitsflow>
+       
+    </HLMessaging>
+</Configuration>

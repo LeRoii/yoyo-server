@@ -1,0 +1,8 @@
+<Configuration>
+ 
+    <HLListener>      
+        <!-- use for specify the session of messages received -->
+        <Session>aiservice-send</Session>
+ 
+    </HLListener>
+</Configuration>

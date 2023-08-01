@@ -1,0 +1,7 @@
+<Configuration>
+ 
+    <HLSender>       
+        <!-- The default session to send message, used as session if the session is not specified in publish/request -->
+        <Session>client-send</Session>       
+    </HLSender>
+</Configuration>
